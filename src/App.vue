@@ -35,38 +35,29 @@
             <div class="mt-1 relative rounded-md shadow-md">
               <input
                 v-model="ticker"
+                @keydown.enter="add"
                 type="text"
                 name="wallet"
                 id="wallet"
                 class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-                placeholder="Например DOGE"
+                placeholder="Например TRX"
               />
             </div>
             <div
               class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
             >
               <span
+                @click="ChooseCoin"
+                v-for="(coin, idx) in coins"
+                :key="idx"
                 class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
               >
-                BTC
-              </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                DOGE
-              </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                BCH
-              </span>
-              <span
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              >
-                CHD
+                {{ coin }}
               </span>
             </div>
-            <div class="text-sm text-red-600">Такой тикер уже добавлен</div>
+            <div v-if="coinDuble" class="text-sm text-red-600">
+              Такой тикер уже добавлен
+            </div>
           </div>
         </div>
         <button
@@ -179,14 +170,32 @@ export default {
 
   data() {
     return {
+      coinDuble: false,
+      coins: ['DOCG', 'TRX', 'BCH', 'DOGE'],
       ticker: '',
+      currentValute: '',
       hideAnim: false,
-      tickers: []
+      tickers: [],
+      sel: null,
+      graph: []
     }
   },
 
   methods: {
+    ChooseCoin(event) {
+      this.ticker = event.target.innerText
+    },
+    checkDuble() {
+      if (this.tickers.find((t) => t.name === this.ticker)) {
+        this.coinDuble = true
+        return false
+      } else {
+        return true
+      }
+    },
     add() {
+      if (this.checkDuble() === false) return
+      this.coinDuble = false
       const currentTicker = {
         name: this.ticker,
         price: '-'
@@ -197,6 +206,7 @@ export default {
           `https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=${currentTicker.name}&tsyms=USD&api_key=0b0b340a8f2bafa332363e2370c600099815dcccbf32560989ceb570d1b412da`
         )
         const data = await f.json()
+
         this.tickers.find((t) => t.name === currentTicker.name).price =
           data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2)
 
